@@ -1,0 +1,88 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- 主背景 -->
+  <rect x="0" y="0" width="1024" height="1024" rx="180" ry="180" fill="url(#bgGradient)"/>
+
+  <!-- 外层对话气泡 -->
+  <path d="M512 180
+           Q700 180 822 282
+           Q944 384 944 512
+           Q944 640 822 742
+           Q700 844 512 844
+           Q450 844 380 820
+           L180 900
+           L230 720
+           Q120 620 120 512
+           Q120 384 230 282
+           Q340 180 512 180 Z"
+        fill="#ffffff"
+        filter="url(#shadow)"
+        opacity="0.95"/>
+
+  <!-- 内层对话气泡（装饰） -->
+  <path d="M512 240
+           Q660 240 756 316
+           Q852 392 852 500
+           Q852 608 756 684
+           Q660 760 512 760
+           Q465 760 420 741
+           L280 800
+           L315 670
+           Q235 594 235 500
+           Q235 392 315 316
+           Q395 240 512 240 Z"
+        fill="url(#bgGradient)"
+        opacity="0.15"/>
+
+  <!-- 主箭头 - 表示转发 -->
+  <path d="M520 350
+           L720 500
+           L520 650
+           L520 580
+           L350 580
+           Q320 580 320 550
+           L320 450
+           Q320 420 350 420
+           L520 420
+           Z"
+        fill="url(#bgGradient)"
+        filter="url(#shadow)"/>
+
+  <!-- 箭头装饰线条 -->
+  <path d="M340 500 L680 500"
+        stroke="#ffffff"
+        stroke-width="12"
+        stroke-linecap="round"
+        opacity="0.3"/>
+
+  <!-- 底部文字：SMS -->
+  <text x="512" y="850"
+        font-family="Arial, sans-serif"
+        font-size="120"
+        font-weight="bold"
+        fill="#ffffff"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        letter-spacing="8">SMS</text>
+
+  <!-- 底部文字：cvt -->
+  <text x="512" y="970"
+        font-family="Arial, sans-serif"
+        font-size="60"
+        font-weight="normal"
+        fill="#ffffff"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        letter-spacing="12"
+        opacity="0.8">cvt</text>
+</svg>
