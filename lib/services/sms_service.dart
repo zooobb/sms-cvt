@@ -122,6 +122,7 @@ class SmsService {
           content: body,
           receivedAt: receivedAt,
           savedAt: DateTime.now(),
+          primaryCategory: '待分类',
         );
 
         // 保存消息（addMessage 内部会再次检查，但这次应该不会重复）

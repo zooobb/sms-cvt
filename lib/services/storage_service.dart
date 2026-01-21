@@ -4,10 +4,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/sms_message.dart';
 import '../models/filter_config.dart';
+import 'category_service.dart';
 
 class StorageService {
   static const String _configKey = 'filter_config';
   static const String _messagesFileName = 'saved_messages.json';
+  final CategoryService _categoryService = CategoryService();
 
   // ========== 配置存储 ==========
 
@@ -65,14 +67,33 @@ class StorageService {
   }
 
   Future<void> addMessage(SavedSmsMessage message) async {
-    // 先检查是否已存在，避免不必要的对象创建和文件读取
-    if (await checkIfMessageExists(message.sender, message.receivedAt)) {
+    final messages = await loadMessages();
+
+    final isDuplicate = messages.any((m) => m.uniqueKey == message.uniqueKey);
+    if (isDuplicate) {
       print('Duplicate message detected: ${message.uniqueKey}, skipping save');
       return;
     }
 
-    final messages = await loadMessages();
-    messages.insert(0, message);
+    final categoryMapping = await _categoryService.matchCategory(
+      message.content,
+    );
+    final primaryCategory = categoryMapping?.primaryCategory ?? '待分类';
+    final secondaryCategory = categoryMapping?.secondaryCategory;
+    final categoryEmoji = categoryMapping?.emoji;
+
+    final messageWithCategory = SavedSmsMessage(
+      id: message.id,
+      sender: message.sender,
+      content: message.content,
+      receivedAt: message.receivedAt,
+      savedAt: message.savedAt,
+      primaryCategory: primaryCategory,
+      secondaryCategory: secondaryCategory,
+      categoryEmoji: categoryEmoji,
+    );
+
+    messages.insert(0, messageWithCategory);
     await saveMessages(messages);
   }
 

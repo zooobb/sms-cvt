@@ -4,8 +4,10 @@ class SavedSmsMessage {
   final String content;
   final DateTime receivedAt;
   final DateTime savedAt;
+  final String primaryCategory;
+  final String? secondaryCategory;
+  final String? categoryEmoji;
 
-  // 唯一标识：基于发送人和接收时间的组合
   String get uniqueKey => '${sender}_${receivedAt.millisecondsSinceEpoch}';
 
   SavedSmsMessage({
@@ -14,17 +16,31 @@ class SavedSmsMessage {
     required this.content,
     required this.receivedAt,
     required this.savedAt,
+    this.primaryCategory = '待分类',
+    this.secondaryCategory,
+    this.categoryEmoji,
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final result = <String, dynamic>{
       'id': id,
       'sender': sender,
       'content': content,
       'receivedAt': receivedAt.toIso8601String(),
       'savedAt': savedAt.toIso8601String(),
       'uniqueKey': uniqueKey,
+      'primaryCategory': primaryCategory,
     };
+
+    if (secondaryCategory != null) {
+      result['secondaryCategory'] = secondaryCategory;
+    }
+
+    if (categoryEmoji != null) {
+      result['categoryEmoji'] = categoryEmoji;
+    }
+
+    return result;
   }
 
   factory SavedSmsMessage.fromJson(Map<String, dynamic> json) {
@@ -34,6 +50,9 @@ class SavedSmsMessage {
       content: json['content'] as String,
       receivedAt: DateTime.parse(json['receivedAt'] as String),
       savedAt: DateTime.parse(json['savedAt'] as String),
+      primaryCategory: json['primaryCategory'] as String? ?? '待分类',
+      secondaryCategory: json['secondaryCategory'] as String?,
+      categoryEmoji: json['categoryEmoji'] as String?,
     );
   }
 
