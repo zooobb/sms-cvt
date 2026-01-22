@@ -4,8 +4,10 @@ class SavedSmsMessage {
   final String content;
   final DateTime receivedAt;
   final DateTime savedAt;
-  final String primaryCategory;
+  final String type;
+  final String? category;
   final String? secondaryCategory;
+  final bool isManuallyClassified;
 
   String get uniqueKey => '${sender}_${receivedAt.millisecondsSinceEpoch}';
 
@@ -15,8 +17,10 @@ class SavedSmsMessage {
     required this.content,
     required this.receivedAt,
     required this.savedAt,
-    required this.primaryCategory,
+    required this.type,
+    this.category,
     this.secondaryCategory,
+    this.isManuallyClassified = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -27,9 +31,13 @@ class SavedSmsMessage {
       'receivedAt': receivedAt.toIso8601String(),
       'savedAt': savedAt.toIso8601String(),
       'uniqueKey': uniqueKey,
-      'primaryCategory': primaryCategory,
+      'type': type,
+      'isManuallyClassified': isManuallyClassified,
     };
 
+    if (category != null) {
+      result['category'] = category!;
+    }
     if (secondaryCategory != null) {
       result['secondaryCategory'] = secondaryCategory!;
     }
@@ -44,8 +52,10 @@ class SavedSmsMessage {
       content: json['content'] as String,
       receivedAt: DateTime.parse(json['receivedAt'] as String),
       savedAt: DateTime.parse(json['savedAt'] as String),
-      primaryCategory: json['primaryCategory'] as String? ?? '待分类',
+      type: json['type'] as String? ?? '待分类',
+      category: json['category'] as String?,
       secondaryCategory: json['secondaryCategory'] as String?,
+      isManuallyClassified: json['isManuallyClassified'] as bool? ?? false,
     );
   }
 

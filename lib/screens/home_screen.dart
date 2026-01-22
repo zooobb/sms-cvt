@@ -419,6 +419,8 @@ class _ExportBottomSheetState extends State<_ExportBottomSheet> {
   String? _exportedFilePath;
   bool _isExporting = false;
   late Future<String> _jsonFuture;
+  DateTime? _startDate;
+  DateTime? _endDate;
 
   @override
   void initState() {
@@ -433,7 +435,10 @@ class _ExportBottomSheetState extends State<_ExportBottomSheet> {
 
     try {
       final appState = context.read<AppState>();
-      final file = await appState.exportDataToFile();
+      final file = await appState.exportDataToFile(
+        startDate: _startDate,
+        endDate: _endDate,
+      );
 
       setState(() {
         _exportedFilePath = file?.path;
@@ -463,6 +468,186 @@ class _ExportBottomSheetState extends State<_ExportBottomSheet> {
         );
       }
     }
+  }
+
+  void _refreshJson() {
+    setState(() {
+      _exportedFilePath = null;
+      _jsonFuture = context.read<AppState>().exportMessages(
+        startDate: _startDate,
+        endDate: _endDate,
+      );
+    });
+  }
+
+  Future<void> _selectDateRange() async {
+    DateTimeRange? result;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          DateTime? tempStart = _startDate;
+          DateTime? tempEnd = _endDate;
+
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '选择时间范围',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: ctx,
+                      initialDate: tempStart ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      locale: const Locale('zh', 'CN'),
+                    );
+                    if (date != null) {
+                      setModalState(() {
+                        tempStart = date;
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.3),
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          tempStart != null
+                              ? _formatDate(tempStart!)
+                              : '选择开始日期',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: ctx,
+                      initialDate: tempEnd ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      locale: const Locale('zh', 'CN'),
+                    );
+                    if (date != null) {
+                      setModalState(() {
+                        tempEnd = date;
+                      });
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.3),
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          tempEnd != null ? _formatDate(tempEnd!) : '选择结束日期',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          setModalState(() {
+                            tempStart = null;
+                            tempEnd = null;
+                          });
+                        },
+                        child: const Text('清除'),
+                      ),
+                    ),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () {
+                          if (tempStart != null && tempEnd != null) {
+                            result = DateTimeRange(
+                              start: DateTime(
+                                tempStart!.year,
+                                tempStart!.month,
+                                tempStart!.day,
+                              ),
+                              end: DateTime(
+                                tempEnd!.year,
+                                tempEnd!.month,
+                                tempEnd!.day,
+                                23,
+                                59,
+                                59,
+                              ),
+                            );
+                          }
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text('确认'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _startDate = result!.start;
+        _endDate = result!.end;
+      });
+      _refreshJson();
+    }
+  }
+
+  void _clearDateRange() {
+    setState(() {
+      _startDate = null;
+      _endDate = null;
+    });
+    _refreshJson();
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -555,6 +740,64 @@ class _ExportBottomSheetState extends State<_ExportBottomSheet> {
               ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Icon(Icons.date_range, size: 20, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: InkWell(
+                    onTap: _selectDateRange,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: colorScheme.outline.withOpacity(0.3),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _startDate != null && _endDate != null
+                                  ? '${_formatDate(_startDate!)} 至 ${_formatDate(_endDate!)}'
+                                  : '选择时间范围（可选）',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _startDate != null
+                                    ? colorScheme.onSurface
+                                    : colorScheme.outline,
+                              ),
+                            ),
+                          ),
+                          if (_startDate != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: InkWell(
+                                onTap: _clearDateRange,
+                                borderRadius: BorderRadius.circular(12),
+                                child: Icon(
+                                  Icons.clear,
+                                  size: 20,
+                                  color: colorScheme.outline,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           if (_exportedFilePath != null)
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),

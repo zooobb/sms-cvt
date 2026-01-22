@@ -248,17 +248,34 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String> exportMessages() async {
-    return await _storageService.exportToJson();
+  Future<String> exportMessages({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    return await _storageService.exportToJson(
+      startDate: startDate,
+      endDate: endDate,
+    );
   }
 
-  Future<File?> exportDataToFile() async {
-    return await _storageService.exportToFile();
+  Future<File?> exportDataToFile({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    return await _storageService.exportToFile(
+      startDate: startDate,
+      endDate: endDate,
+    );
   }
 
   Future<int> scanExistingMessages() async {
     final count = await _smsService.scanAllMessages();
     await loadData();
     return count;
+  }
+
+  Future<void> reclassifyMessages() async {
+    await _storageService.reclassifyMessages();
+    await loadData();
   }
 }

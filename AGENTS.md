@@ -30,8 +30,8 @@ flutter test --coverage            # With coverage
 - Dart SDK: ^3.9.2, Flutter Material 3, Provider (ChangeNotifier pattern)
 
 ### Import Organization
+Order: Dart core → Flutter SDK → Third-party → Project-relative:
 ```dart
-// Order: Dart core → Flutter SDK → Third-party → Project-relative
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,26 +39,13 @@ import '../models/sms_message.dart';
 ```
 
 ### Naming Conventions
-- Classes: PascalCase (e.g., `SmsService`)
-- Variables/Functions: camelCase (e.g., `loadConfig`)
-- Private: underscore prefix (e.g., `_config`)
-- Files: snake_case.dart
+Classes: PascalCase (`SmsService`), vars/fns: camelCase (`loadConfig`), private: `_config`, files: snake_case.dart
 
 ### Types & Null Safety
-```dart
-class SavedSmsMessage {
-  final String id;
-  SavedSmsMessage({required this.id});
-}
-```
-Use `required`, `late`, null-aware operators `??`, `?.`, `??=`
+Use `required`, `late`, null-aware operators `??`, `?.`, `??=`, `final` for immutable fields
 
 ### Const Constructors
-Use const for widgets, colors, padding, border radius:
-```dart
-const SizedBox(height: 16),
-const Icon(Icons.add),
-```
+Use const for widgets, colors, padding, border radius: `const SizedBox(height: 16)`
 
 ### Models
 Include `toJson()`, `fromJson`, `copyWith()`, computed getters, `toString()`:
@@ -99,7 +86,7 @@ Future<void> _init() async {
 ```
 
 ### Widget Organization
-Split into `_buildX` methods, use `Consumer<T>` for provider state:
+Split into `_buildX` methods, use `Consumer<T>` or `context.watch<T>` for provider state:
 ```dart
 Widget build(BuildContext context) {
   return Scaffold(
@@ -130,7 +117,7 @@ await _channel.invokeMethod('startListening');
 ```
 
 ### Error Handling
-Try-catch async ops, log with print(), return defaults on error:
+Try-catch async ops, log with print() (avoid_print disabled), return defaults on error:
 ```dart
 Future<List<SavedSmsMessage>> loadMessages() async {
   try {

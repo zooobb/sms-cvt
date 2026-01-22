@@ -20,10 +20,21 @@ class SavedMessagesScreen extends StatelessWidget {
               if (appState.savedMessages.isEmpty) {
                 return const SizedBox.shrink();
               }
-              return IconButton(
-                icon: const Icon(Icons.delete_sweep),
-                tooltip: '清空所有',
-                onPressed: () => _showClearConfirmDialog(context, appState),
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    tooltip: '重新分类',
+                    onPressed: () =>
+                        _showRefreshConfirmDialog(context, appState),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_sweep),
+                    tooltip: '清空所有',
+                    onPressed: () => _showClearConfirmDialog(context, appState),
+                  ),
+                ],
               );
             },
           ),
@@ -212,19 +223,27 @@ class SavedMessagesScreen extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 _buildInfoRow(
                                   context,
-                                  '一级分类',
-                                  message.primaryCategory,
+                                  '类型',
+                                  message.type,
                                   valueColor: colorScheme.primary,
                                 ),
                                 const SizedBox(height: 8),
+                                if (message.category != null) ...[
+                                  _buildInfoRow(
+                                    context,
+                                    '一级分类',
+                                    message.category!,
+                                  ),
+                                ],
                                 if (message.secondaryCategory != null) ...[
+                                  const SizedBox(height: 8),
                                   _buildInfoRow(
                                     context,
                                     '二级分类',
                                     message.secondaryCategory!,
                                   ),
                                 ],
-                                if (message.primaryCategory != '待分类') ...[
+                                if (message.type != '待分类') ...[
                                   const SizedBox(height: 24),
                                   Container(
                                     padding: const EdgeInsets.all(12),
@@ -320,12 +339,17 @@ class SavedMessagesScreen extends StatelessWidget {
 
   void _showCategoryDialog(BuildContext context, SavedSmsMessage message) {
     final colorScheme = Theme.of(context).colorScheme;
-    final primaryController = TextEditingController(
-      text: message.primaryCategory != '待分类' ? message.primaryCategory : '',
+    final typeController = TextEditingController(
+      text: message.type != '待分类' ? message.type : '',
     );
-    final secondaryController = TextEditingController(
+    final categoryController = TextEditingController(
+      text: message.category ?? '',
+    );
+    final secondaryCategoryController = TextEditingController(
       text: message.secondaryCategory ?? '',
     );
+
+    const typeOptions = ['支出', '收入', '转账'];
 
     showDialog(
       context: context,
@@ -335,7 +359,7 @@ class SavedMessagesScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('请选择一级分类和二级分类：'),
+            const Text('请选择类型和分类：'),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -345,11 +369,32 @@ class SavedMessagesScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  TextField(
-                    controller: primaryController,
+                  DropdownButtonFormField<String>(
+                    initialValue: typeController.text.isEmpty
+                        ? null
+                        : typeController.text,
                     decoration: InputDecoration(
-                      labelText: '一级分类',
-                      hintText: '例如：收入、支出、交通',
+                      labelText: '类型',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    items: typeOptions.map((String type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      typeController.text = newValue ?? '';
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: categoryController,
+                    decoration: InputDecoration(
+                      labelText: '一级分类（可选）',
+                      hintText: '例如：工资、餐饮',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -357,10 +402,10 @@ class SavedMessagesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    controller: secondaryController,
+                    controller: secondaryCategoryController,
                     decoration: InputDecoration(
                       labelText: '二级分类（可选）',
-                      hintText: '例如：工资、餐饮',
+                      hintText: '例如：早餐、午餐',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -378,18 +423,27 @@ class SavedMessagesScreen extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () {
+              final newType = typeController.text.trim().isEmpty
+                  ? message.type
+                  : typeController.text.trim();
+              final newCategory = categoryController.text.trim().isEmpty
+                  ? message.category
+                  : categoryController.text.trim();
+              final newSecondaryCategory =
+                  secondaryCategoryController.text.trim().isEmpty
+                  ? message.secondaryCategory
+                  : secondaryCategoryController.text.trim();
+
               final updatedMessage = SavedSmsMessage(
                 id: message.id,
                 sender: message.sender,
                 content: message.content,
                 receivedAt: message.receivedAt,
                 savedAt: message.savedAt,
-                primaryCategory: primaryController.text.trim().isEmpty
-                    ? message.primaryCategory
-                    : primaryController.text.trim(),
-                secondaryCategory: secondaryController.text.trim().isEmpty
-                    ? message.secondaryCategory
-                    : null,
+                type: newType,
+                category: newCategory,
+                secondaryCategory: newSecondaryCategory,
+                isManuallyClassified: true,
               );
 
               context.read<AppState>().updateMessage(updatedMessage);
@@ -422,6 +476,35 @@ class SavedMessagesScreen extends StatelessWidget {
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             child: const Text('清空'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRefreshConfirmDialog(BuildContext context, AppState appState) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('确认重新分类'),
+        content: const Text('将对所有自动分类的短信重新应用最新的分类规则，是否继续？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              appState.reclassifyMessages();
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('重新分类完成'),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                ),
+              );
+            },
+            child: const Text('确认'),
           ),
         ],
       ),
@@ -490,6 +573,16 @@ class _MessageCard extends StatelessWidget {
                         color: colorScheme.primary,
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _getContentPreview(message.content),
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
@@ -538,16 +631,26 @@ class _MessageCard extends StatelessWidget {
   }
 
   String _getCategoryText(SavedSmsMessage message) {
-    if (message.primaryCategory == '待分类') {
+    if (message.type == '待分类') {
       return '待分类';
     }
 
     final parts = <String>[];
-    parts.add(message.primaryCategory);
+    parts.add(message.type);
+    if (message.category != null) {
+      parts.add(message.category!);
+    }
     if (message.secondaryCategory != null) {
       parts.add(message.secondaryCategory!);
     }
 
     return parts.join(' / ');
+  }
+
+  String _getContentPreview(String content) {
+    if (content.length <= 60) {
+      return content;
+    }
+    return '${content.substring(0, 60)}...';
   }
 }

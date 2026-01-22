@@ -6,37 +6,24 @@ class CategoryService {
   static const String _mappingsKey = 'category_mappings';
 
   static const List<CategoryMapping> _defaultMappings = [
-    CategoryMapping(
-      keyword: '入账',
-      primaryCategory: '收入',
-      secondaryCategory: '工资',
-    ),
-    CategoryMapping(
-      keyword: '汇入',
-      primaryCategory: '收入',
-      secondaryCategory: '转账',
-    ),
-    CategoryMapping(
-      keyword: '工资',
-      primaryCategory: '收入',
-      secondaryCategory: '工资',
-    ),
-    CategoryMapping(keyword: '支付', primaryCategory: '支出'),
-    CategoryMapping(keyword: '扣款', primaryCategory: '支出'),
-    CategoryMapping(keyword: '消费', primaryCategory: '支出'),
-    CategoryMapping(keyword: '转账', primaryCategory: '支出'),
-    CategoryMapping(keyword: '取款', primaryCategory: '支出'),
-    CategoryMapping(keyword: '余额', primaryCategory: '余额'),
-    CategoryMapping(keyword: '打车', primaryCategory: '交通'),
-    CategoryMapping(keyword: '外卖', primaryCategory: '餐饮'),
-    CategoryMapping(keyword: '超市', primaryCategory: '购物'),
-    CategoryMapping(keyword: '购物', primaryCategory: '购物'),
-    CategoryMapping(keyword: '话费', primaryCategory: '通讯'),
-    CategoryMapping(keyword: '电费', primaryCategory: '生活缴费'),
-    CategoryMapping(keyword: '水费', primaryCategory: '生活缴费'),
-    CategoryMapping(keyword: '租金', primaryCategory: '住房'),
-    CategoryMapping(keyword: '房租', primaryCategory: '住房'),
-    CategoryMapping(keyword: '医疗', primaryCategory: '医疗'),
+    CategoryMapping(keyword: '入账', type: '收入', category: '工资'),
+    CategoryMapping(keyword: '汇入', type: '收入', category: '转账'),
+    CategoryMapping(keyword: '工资', type: '收入', category: '工资'),
+    CategoryMapping(keyword: '支付', type: '支出'),
+    CategoryMapping(keyword: '扣款', type: '支出'),
+    CategoryMapping(keyword: '消费', type: '支出'),
+    CategoryMapping(keyword: '转账', type: '转账'),
+    CategoryMapping(keyword: '取款', type: '转账'),
+    CategoryMapping(keyword: '打车', type: '支出', category: '交通'),
+    CategoryMapping(keyword: '外卖', type: '支出', category: '餐饮'),
+    CategoryMapping(keyword: '超市', type: '支出', category: '购物'),
+    CategoryMapping(keyword: '购物', type: '支出', category: '购物'),
+    CategoryMapping(keyword: '话费', type: '支出', category: '通讯'),
+    CategoryMapping(keyword: '电费', type: '支出', category: '生活缴费'),
+    CategoryMapping(keyword: '水费', type: '支出', category: '生活缴费'),
+    CategoryMapping(keyword: '租金', type: '支出', category: '住房'),
+    CategoryMapping(keyword: '房租', type: '支出', category: '住房'),
+    CategoryMapping(keyword: '医疗', type: '支出', category: '医疗'),
   ];
 
   Future<List<CategoryMapping>> getMappings() async {
@@ -89,10 +76,11 @@ class CategoryService {
     await saveMappings(updatedMappings);
   }
 
-  CategoryMapping? matchCategory(String content) {
+  Future<CategoryMapping?> matchCategory(String content) async {
     final lowerContent = content.toLowerCase();
+    final mappings = await getMappings();
 
-    for (final mapping in _defaultMappings) {
+    for (final mapping in mappings) {
       if (lowerContent.contains(mapping.keyword.toLowerCase())) {
         return mapping;
       }
