@@ -6,7 +6,6 @@ class SavedSmsMessage {
   final DateTime savedAt;
   final String primaryCategory;
   final String? secondaryCategory;
-  final String? categoryEmoji;
 
   String get uniqueKey => '${sender}_${receivedAt.millisecondsSinceEpoch}';
 
@@ -16,9 +15,8 @@ class SavedSmsMessage {
     required this.content,
     required this.receivedAt,
     required this.savedAt,
-    this.primaryCategory = '待分类',
+    required this.primaryCategory,
     this.secondaryCategory,
-    this.categoryEmoji,
   });
 
   Map<String, dynamic> toJson() {
@@ -33,11 +31,7 @@ class SavedSmsMessage {
     };
 
     if (secondaryCategory != null) {
-      result['secondaryCategory'] = secondaryCategory;
-    }
-
-    if (categoryEmoji != null) {
-      result['categoryEmoji'] = categoryEmoji;
+      result['secondaryCategory'] = secondaryCategory!;
     }
 
     return result;
@@ -52,7 +46,6 @@ class SavedSmsMessage {
       savedAt: DateTime.parse(json['savedAt'] as String),
       primaryCategory: json['primaryCategory'] as String? ?? '待分类',
       secondaryCategory: json['secondaryCategory'] as String?,
-      categoryEmoji: json['categoryEmoji'] as String?,
     );
   }
 

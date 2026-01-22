@@ -2,13 +2,11 @@ class CategoryMapping {
   final String keyword;
   final String primaryCategory;
   final String? secondaryCategory;
-  final String? emoji;
 
   const CategoryMapping({
     required this.keyword,
     required this.primaryCategory,
     this.secondaryCategory,
-    this.emoji,
   });
 
   Map<String, dynamic> toJson() {
@@ -18,11 +16,7 @@ class CategoryMapping {
     };
 
     if (secondaryCategory != null) {
-      result['secondaryCategory'] = secondaryCategory;
-    }
-
-    if (emoji != null) {
-      result['emoji'] = emoji;
+      result['secondaryCategory'] = secondaryCategory!;
     }
 
     return result;
@@ -33,7 +27,6 @@ class CategoryMapping {
       keyword: json['keyword'] as String,
       primaryCategory: json['primaryCategory'] as String,
       secondaryCategory: json['secondaryCategory'] as String?,
-      emoji: json['emoji'] as String?,
     );
   }
 }

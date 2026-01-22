@@ -9,6 +9,8 @@ import 'services/notification_service.dart';
 import 'models/filter_config.dart';
 import 'models/sender_keyword_rule.dart';
 import 'models/sms_message.dart';
+import 'models/category_mapping.dart';
+import 'services/category_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,14 +102,17 @@ class AppState extends ChangeNotifier {
   final StorageService _storageService = StorageService();
   final SmsService _smsService = SmsService();
   final PermissionService _permissionService = PermissionService();
+  final CategoryService _categoryService = CategoryService();
 
   FilterConfig _config = FilterConfig.empty();
   List<SavedSmsMessage> _savedMessages = [];
+  List<CategoryMapping> _categoryMappings = [];
   bool _isLoading = true;
   bool _hasPermissions = false;
 
   FilterConfig get config => _config;
   List<SavedSmsMessage> get savedMessages => _savedMessages;
+  List<CategoryMapping> get categoryMappings => _categoryMappings;
   bool get isLoading => _isLoading;
   bool get hasPermissions => _hasPermissions;
 
@@ -117,6 +122,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> _init() async {
     await loadData();
+    await loadCategoryMappings();
     await checkPermissions();
     _isLoading = false;
     notifyListeners();
@@ -127,6 +133,11 @@ class AppState extends ChangeNotifier {
     _savedMessages = await _storageService.loadMessages();
     // 按接收时间倒序排列
     _savedMessages.sort((a, b) => b.receivedAt.compareTo(a.receivedAt));
+    notifyListeners();
+  }
+
+  Future<void> loadCategoryMappings() async {
+    _categoryMappings = await _categoryService.getMappings();
     notifyListeners();
   }
 
@@ -213,6 +224,27 @@ class AppState extends ChangeNotifier {
   Future<void> clearAllMessages() async {
     await _storageService.clearAllMessages();
     _savedMessages.clear();
+    notifyListeners();
+  }
+
+  Future<void> updateMessage(SavedSmsMessage message) async {
+    await _storageService.updateMessage(message);
+    final index = _savedMessages.indexWhere((m) => m.id == message.id);
+    if (index != -1) {
+      _savedMessages[index] = message;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addCategoryMapping(CategoryMapping mapping) async {
+    await _categoryService.addMapping(mapping);
+    _categoryMappings.add(mapping);
+    notifyListeners();
+  }
+
+  Future<void> removeCategoryMapping(String keyword) async {
+    await _categoryService.removeMapping(keyword);
+    _categoryMappings.removeWhere((m) => m.keyword == keyword);
     notifyListeners();
   }
 

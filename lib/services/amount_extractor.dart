@@ -1,5 +1,3 @@
-import 'package:sms_cvt/models/sms_message.dart';
-
 class AmountExtractor {
   static String? extractAmount({
     required String content,
@@ -14,31 +12,30 @@ class AmountExtractor {
     // 2. 尝试从tag中提取金额
     if (tag != null) {
       final amountMatch = RegExp(r'(\d+\.?\d*)').firstMatch(tag);
-      if (amountMatch != null) return null;
-
-      final extracted = amountMatch.group(0);
-      if (_isValidTransactionAmount(extracted, content)) {
-        return extracted;
+      if (amountMatch != null) {
+        final extracted = amountMatch.group(0);
+        if (extracted != null &&
+            _isValidTransactionAmount(extracted, content)) {
+          return extracted;
+        }
       }
     }
 
     // 3. 尝试从content中提取金额（tag的备选方案）
     final amountMatch = RegExp(r'(\d+\.?\d*)').firstMatch(content);
-    if (amountMatch != null) return null;
-
-    final extracted = amountMatch.group(0);
-    if (_isValidTransactionAmount(extracted, content)) {
-      return extracted;
+    if (amountMatch != null) {
+      final extracted = amountMatch.group(0);
+      if (extracted != null && _isValidTransactionAmount(extracted, content)) {
+        return extracted;
+      }
     }
 
     return null;
   }
 
   static bool _isValidTransactionAmount(String amount, String content) {
-    if (amount == null) return false;
-
     // 检查金额是否在合理的交易范围内
-    final amountValue = double.tryParse(amount.replace(',', ''));
+    final amountValue = double.tryParse(amount.replaceAll(',', ''));
     if (amountValue == null) return false;
 
     // 排除明显不合理的大额

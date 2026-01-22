@@ -182,6 +182,7 @@ class SmsService {
         content: body,
         receivedAt: date,
         savedAt: DateTime.now(),
+        primaryCategory: '待分类',
       );
 
       await _storageService.addMessage(savedMessage);
@@ -228,6 +229,7 @@ class SmsService {
         content: body,
         receivedAt: date,
         savedAt: DateTime.now(),
+        primaryCategory: '待分类',
       );
 
       await _storageService.addMessage(savedMessage);

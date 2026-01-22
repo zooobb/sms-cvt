@@ -1,7 +1,7 @@
-import 'package:permission_handler/permission_handler.dart' as permission_handler;
+import 'package:permission_handler/permission_handler.dart'
+    as permission_handler;
 
 class PermissionService {
-
   Future<bool> requestSmsPermissions() async {
     final smsStatus = await permission_handler.Permission.sms.request();
     return smsStatus.isGranted;
@@ -30,11 +30,17 @@ class PermissionService {
     return statuses.values.every((status) => status.isGranted);
   }
 
-  Future<Map<permission_handler.Permission, permission_handler.PermissionStatus>> checkAllPermissions() async {
+  Future<
+    Map<permission_handler.Permission, permission_handler.PermissionStatus>
+  >
+  checkAllPermissions() async {
     return {
-      permission_handler.Permission.sms: await permission_handler.Permission.sms.status,
-      permission_handler.Permission.storage: await permission_handler.Permission.storage.status,
-      permission_handler.Permission.notification: await permission_handler.Permission.notification.status,
+      permission_handler.Permission.sms:
+          await permission_handler.Permission.sms.status,
+      permission_handler.Permission.storage:
+          await permission_handler.Permission.storage.status,
+      permission_handler.Permission.notification:
+          await permission_handler.Permission.notification.status,
     };
   }
 

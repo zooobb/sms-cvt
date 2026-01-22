@@ -75,12 +75,9 @@ class StorageService {
       return;
     }
 
-    final categoryMapping = await _categoryService.matchCategory(
-      message.content,
-    );
+    final categoryMapping = _categoryService.matchCategory(message.content);
     final primaryCategory = categoryMapping?.primaryCategory ?? '待分类';
     final secondaryCategory = categoryMapping?.secondaryCategory;
-    final categoryEmoji = categoryMapping?.emoji;
 
     final messageWithCategory = SavedSmsMessage(
       id: message.id,
@@ -90,7 +87,6 @@ class StorageService {
       savedAt: message.savedAt,
       primaryCategory: primaryCategory,
       secondaryCategory: secondaryCategory,
-      categoryEmoji: categoryEmoji,
     );
 
     messages.insert(0, messageWithCategory);
@@ -101,6 +97,15 @@ class StorageService {
     final messages = await loadMessages();
     messages.removeWhere((m) => m.id == id);
     await saveMessages(messages);
+  }
+
+  Future<void> updateMessage(SavedSmsMessage updatedMessage) async {
+    final messages = await loadMessages();
+    final index = messages.indexWhere((m) => m.id == updatedMessage.id);
+    if (index != -1) {
+      messages[index] = updatedMessage;
+      await saveMessages(messages);
+    }
   }
 
   Future<void> clearAllMessages() async {

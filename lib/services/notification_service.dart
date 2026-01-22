@@ -5,13 +5,16 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
   Future<void> initialize() async {
     if (_initialized) return;
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const initSettings = InitializationSettings(android: androidSettings);
 
     await _notifications.initialize(initSettings);
@@ -27,7 +30,9 @@ class NotificationService {
       await initialize();
     }
 
-    final when = receivedAt?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch;
+    final when =
+        receivedAt?.millisecondsSinceEpoch ??
+        DateTime.now().millisecondsSinceEpoch;
 
     final androidDetails = AndroidNotificationDetails(
       'sms_filter_channel',
@@ -44,8 +49,8 @@ class NotificationService {
 
     final details = NotificationDetails(android: androidDetails);
 
-    final timeString = receivedAt != null 
-        ? ' ${receivedAt.hour.toString().padLeft(2, '0')}:${receivedAt.minute.toString().padLeft(2, '0')}' 
+    final timeString = receivedAt != null
+        ? ' ${receivedAt.hour.toString().padLeft(2, '0')}:${receivedAt.minute.toString().padLeft(2, '0')}'
         : '';
 
     await _notifications.show(
