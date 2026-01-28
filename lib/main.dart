@@ -238,14 +238,12 @@ class AppState extends ChangeNotifier {
 
   Future<void> addCategoryMapping(CategoryMapping mapping) async {
     await _categoryService.addMapping(mapping);
-    _categoryMappings.add(mapping);
-    notifyListeners();
+    await loadCategoryMappings(); // 重新从 service 加载
   }
 
   Future<void> removeCategoryMapping(String keyword) async {
     await _categoryService.removeMapping(keyword);
-    _categoryMappings.removeWhere((m) => m.keyword == keyword);
-    notifyListeners();
+    await loadCategoryMappings(); // 重新从 service 加载
   }
 
   Future<String> exportMessages({

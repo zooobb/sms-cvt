@@ -494,15 +494,17 @@ class SavedMessagesScreen extends StatelessWidget {
             child: const Text('取消'),
           ),
           FilledButton(
-            onPressed: () {
-              appState.reclassifyMessages();
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('重新分类完成'),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                ),
-              );
+              await appState.reclassifyMessages();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('重新分类完成'),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              }
             },
             child: const Text('确认'),
           ),

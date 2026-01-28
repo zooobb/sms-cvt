@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/sms_message.dart';
@@ -128,12 +129,18 @@ class StorageService {
 
   Future<void> reclassifyMessages() async {
     final messages = await loadMessages();
+    final mappings = await _categoryService.getMappings();
+    print('=== 开始重新分类 ===');
+    print('短信数量: ${messages.length}');
+    print('分类规则数量: ${mappings.length}');
+    print('分类规则: $mappings');
     bool hasChanges = false;
 
     for (int i = 0; i < messages.length; i++) {
       final message = messages[i];
 
       if (message.isManuallyClassified) {
+        print('跳过手动分类的消息: ${message.id}');
         continue;
       }
 
@@ -144,9 +151,15 @@ class StorageService {
       final newCategory = categoryMapping?.category ?? '待分类';
       final newSecondaryCategory = categoryMapping?.secondaryCategory;
 
+      print('短信: ${message.sender}, 内容: ${message.content.substring(0, min(30, message.content.length))}...');
+      print('匹配结果: $categoryMapping');
+      print('当前: type=${message.type}, category=${message.category}, secondary=${message.secondaryCategory}');
+      print('新值: type=$newType, category=$newCategory, secondary=$newSecondaryCategory');
+
       if (message.type != newType ||
           message.category != newCategory ||
           message.secondaryCategory != newSecondaryCategory) {
+        print('-> 需要更新');
         messages[i] = SavedSmsMessage(
           id: message.id,
           sender: message.sender,
@@ -159,12 +172,18 @@ class StorageService {
           isManuallyClassified: false,
         );
         hasChanges = true;
+      } else {
+        print('-> 无需更新');
       }
     }
 
     if (hasChanges) {
+      print('有变化，保存消息');
       await saveMessages(messages);
+    } else {
+      print('无变化，不保存');
     }
+    print('=== 重新分类完成 ===');
   }
 
   // ========== 导出功能 ==========
@@ -209,12 +228,10 @@ class StorageService {
       'savedAt': _formatDateTime(message.savedAt),
       'uniqueKey': message.uniqueKey,
       'type': message.type,
+      'category': message.category ?? '',
+      'secondaryCategory': message.secondaryCategory ?? '',
       'isManuallyClassified': message.isManuallyClassified,
     };
-
-    if (message.category != null) {
-      result['category'] = message.category!;
-    }
 
     return result;
   }

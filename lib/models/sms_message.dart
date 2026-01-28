@@ -35,12 +35,8 @@ class SavedSmsMessage {
       'isManuallyClassified': isManuallyClassified,
     };
 
-    if (category != null) {
-      result['category'] = category!;
-    }
-    if (secondaryCategory != null) {
-      result['secondaryCategory'] = secondaryCategory!;
-    }
+    result['category'] = category ?? '';
+    result['secondaryCategory'] = secondaryCategory ?? '';
 
     return result;
   }

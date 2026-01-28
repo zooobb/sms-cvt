@@ -11,6 +11,11 @@ class CategoryMapping {
     this.secondaryCategory,
   });
 
+  @override
+  String toString() {
+    return 'CategoryMapping(keyword: $keyword, type: $type, category: $category, secondaryCategory: $secondaryCategory)';
+  }
+
   Map<String, dynamic> toJson() {
     final result = <String, dynamic>{'keyword': keyword, 'type': type};
 

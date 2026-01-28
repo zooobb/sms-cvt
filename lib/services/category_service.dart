@@ -30,17 +30,24 @@ class CategoryService {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = prefs.getString(_mappingsKey);
 
+    print('=== CategoryService.getMappings ===');
+    print('从 SharedPreferences 读取的原始数据: $jsonStr');
+
     if (jsonStr == null) {
+      print('shared_preferences 中没有数据，返回默认规则');
       return List.from(_defaultMappings);
     }
 
     try {
       final jsonData = jsonDecode(jsonStr) as List;
-      return jsonData
+      final result = jsonData
           .map((e) => CategoryMapping.fromJson(e as Map<String, dynamic>))
           .toList();
+      print('成功解析 ${result.length} 条规则');
+      print('规则列表: $result');
+      return result;
     } catch (e) {
-      print('Error loading category mappings: $e');
+      print('解析失败: $e，返回默认规则');
       return List.from(_defaultMappings);
     }
   }
@@ -52,9 +59,14 @@ class CategoryService {
   }
 
   Future<void> addMapping(CategoryMapping mapping) async {
+    print('=== CategoryService.addMapping ===');
+    print('要添加的规则: $mapping');
+
     final mappings = await getMappings();
+    print('当前规则数量: ${mappings.length}');
 
     if (mappings.any((m) => m.keyword == mapping.keyword)) {
+      print('规则已存在，更新它');
       final updatedMappings = mappings.map((m) {
         if (m.keyword == mapping.keyword) {
           return mapping;
@@ -63,6 +75,7 @@ class CategoryService {
       }).toList();
       await saveMappings(updatedMappings);
     } else {
+      print('新规则，添加到列表');
       final updatedMappings = [...mappings, mapping];
       await saveMappings(updatedMappings);
     }
@@ -77,15 +90,28 @@ class CategoryService {
   }
 
   Future<CategoryMapping?> matchCategory(String content) async {
+    print('=== CategoryService.matchCategory ===');
+    print('短信内容: $content');
+
     final lowerContent = content.toLowerCase();
     final mappings = await getMappings();
 
+    // 按关键字长度降序排序，优先匹配更具体的规则
+    mappings.sort((a, b) => b.keyword.length.compareTo(a.keyword.length));
+
+    print('共有 ${mappings.length} 条规则待匹配 (已排序)');
+
+
     for (final mapping in mappings) {
-      if (lowerContent.contains(mapping.keyword.toLowerCase())) {
+      final keywordLower = mapping.keyword.toLowerCase();
+      print('检查规则: keyword="${mapping.keyword}", lowercase="$keywordLower", contains=${lowerContent.contains(keywordLower)}');
+      if (lowerContent.contains(keywordLower)) {
+        print('匹配成功! 返回: $mapping');
         return mapping;
       }
     }
 
+    print('没有匹配的规则');
     return null;
   }
 }
